@@ -10,20 +10,26 @@ class Db():
             for lines in file:
                 try:
                     self.object = lines.split()
-                    self.food_list.setdefault(self.object[0], dict(Price=self.object[3],quantity=self.object[1],Unit=self.object[2]))
+                    self.food_list.setdefault(self.object[0], dict(Quantity=self.object[1],Unit=self.object[2],Price=self.object[3]))
                 except:
                     pass
                 
     def add(self,item):
-        with open(self.directory, 'a') as file:
-            if item[0] not in self.food_list:
-                file.write(' '.join(item)+'\n')
-                self.food_list.setdefault(item[0], dict(Price=item[3],quantity=item[1],Unit=item[2]))
-            else:
-                print('This object is already in the database')
-    
+        if item[0].strip(' ')!='' and item[1].strip(' ')!='' and item[2].strip(' ')!='' and item[3].strip(' ')!='':
+            with open(self.directory, 'a') as file:
+                if item[0] not in self.food_list:
+                    file.write(' '.join(item)+'\n')
+                    self.food_list.setdefault(item[0], dict(Quantity=item[1],Unit=item[2],Price=item[3]))
+                else:
+                    print('This object is already in the database')
+        else:
+            print('\nThe name you entered has a wrong format\n')
+            
     def remove(self, item):
-        if item.strip()!= "":
+        if item in Shopping_cart().shopping_cart:
+            Shopping_cart().remove(item.title())
+            
+        if  item.strip(' ')!='':
             with open(self.directory, "r") as f:
                 lines = f.readlines()
             with open(self.directory, "w") as f:
@@ -36,18 +42,17 @@ class Db():
         else:
             print('The name you entered has a wrong format')
             main()
+
 class Recipt:
     def __init__(self):
         self.width = 45
         self.price_width = 10
-        self.item_width =self.width - self.price_width
-        self.Total_price = 0
+        self.item_width = self.width - self.price_width
+        self.total_price = 0
         
     def show(self,shopping_cart,db_food_list):
         self.format_name_price= '{{:{}}}{{:>{}}} '.format(self.item_width,self.price_width)
         self.format_quantity = '{{:^{}}} {{:<{}}} X {{:<{}.2f}}'.format(3,1,1)
-        self.db_food_list = db_food_list
-        self.shopping_cart = shopping_cart
         print(u'\u2704'+'-'*(self.width-2),'\n')
         print('{name:^{space}}'.format(space=self.width, name='STORE'),'\n')
         print('-'*self.width,'\n')
@@ -58,34 +63,34 @@ class Recipt:
         print('-'*self.width)
         print(self.format_name_price.format('Items','Price(Lei)'))
         print('-'*self.width,'\n')
-        for items in self.shopping_cart:
-            self.Price1 = float(self.db_food_list[items.title()]['Price']) * self.shopping_cart[items] / float(self.db_food_list[items.title()]['quantity']) 
-            print(self.format_name_price.format(items.title() , '{:.2f}'.format(self.Price1)))
-            print(self.format_quantity.format(self.shopping_cart[items], self.db_food_list[items.title()]['Unit'], float(self.db_food_list[items.title()]['Price'])))
+        for items in shopping_cart:
+            self.price_right = float(db_food_list[items.title()]['Price']) * shopping_cart[items] / float(db_food_list[items.title()]['Quantity']) 
+            print(self.format_name_price.format(items.title() , '{:.2f}'.format(self.price_right)))
+            print(self.format_quantity.format(shopping_cart[items],db_food_list[items.title()]['Unit'], float(db_food_list[items.title()]['Price'])))
             print()
-            self.Total_price+=self.Price1
+            self.total_price +=self.price_right
         print('-'*self.width)
-        print(self.format_name_price.format('Total', '{:.2f} Lei'.format(self.Total_price)))
+        print(self.format_name_price.format('Total', '{:.2f} Lei'.format(self.total_price)))
         print('-'*self.width,'\n')
         print('{name:^{space}}'.format(space=self.width, name='Thank you for buying from us'.upper()),'\n')
-        print('{name:^{space}}'.format(space=self.width, name='receipt'.title())+'\n\n'+u'\u2704'+'-'*(self.width-2),'\n')
+        print('{name:^{space}}'.format(space=self.width, name='receipt'.title())+'\n'+u'\u2704'+'-'*(self.width-2),'\n')
 
     def resize(self, width=45, price_width=10):
         self.width = width
         self.price_width = price_width
-        self.item_width =self.width - self.price_width
+        self.item_width = self.width - self.price_width
 
-db = Db()
+
 class Shopping_cart():
     def __init__(self):
         self.shopping_cart = {}
         
-    def add(self, item, db_food_list = db.food_list):
+    def add(self, item, db_food_list):
         if item[0].title() in db_food_list.keys():
             if item[0] in self.shopping_cart:
-                self.shopping_cart[item[0]] +=item[1]
+                self.shopping_cart[item[0]]+=item[1]
             else:
-                self.shopping_cart.setdefault(item[0],item[1])
+                self.shopping_cart.setdefault(item[0].title(),item[1])
         else:
             print('The object you wanted to add to the shopping cart does not exist in the database')
             
@@ -96,39 +101,39 @@ class Shopping_cart():
             print('The object is not in the shopping cart')
         
     def show(self):
-        print(self.shopping_cart)
+        print('Shopping cart: \n',self.shopping_cart)
+
 
 def main():
-    shopping_cart = Shopping_cart()
+    db = Db()
     recipt = Recipt()
+    shopping_cart = Shopping_cart()
     width = 45
+    
     def again(number):
-        try:
-            again = int(input('Do you want to repeat this action one more time? 1: for yes, 2: for no '))
-            if again == 1:
-                menu(number)
-            else:
-                menu_show()
-        except:
+        again = int(input('Do you want to repeat this action one more time?\n1: for yes\n2: for no '))
+        if again == 1:
+            menu_action(number)
+        else:
             menu_show()
-    def menu(number):
+            
+    def menu_action(number):
         if number == 1:
-            try:
-                nume_obiect = input('Give the name of the object you want to add to the shopping cart: ')
-                quantity_obiect = int(input('Enter the quantity of the item you want to add to the shopping cart: '))
-                shopping_cart.add((nume_obiect.title(),quantity_obiect))
-                again(1)
-            except:
-                pass
+            nume_obiect = input('Give the name of the object you want to add to the shopping cart: ')
+            quantity_obiect = float(input('Enter the quantity of the item you want to add to the shopping cart: '))
+            shopping_cart.add((nume_obiect.title(),quantity_obiect), db.food_list)
+            again(1)
+            
         elif number == 2:
             name = input('Give the name of the object you want to remove from the shopping cart: ')
             shopping_cart.remove(name.title())
             again(2)
+            
         elif number == 3:
             shopping_cart.show()
             menu_show()
-        elif number == 4:
             
+        elif number == 4:
             name = input('Give the name of the object: ')
             quantity = input('Give the quantity of the object: ')
             unit = input('Give the unit of measure of the object: ')
@@ -140,21 +145,24 @@ def main():
             name = input('Give the name of the object you want to remove from the database: ')
             db.remove(name.title())
             again(5)
+            
         elif number == 6:
+            print('\nDatabase: ')
             pprint.pprint(db.food_list)
             menu_show()
+            
         elif number == 7:
             recipt.show(shopping_cart.shopping_cart , db.food_list)
             menu_show()
+            
         elif number == 8:
-            try:
-                size = int(input('Enter the size you want to resize: '))
-                recipt.resize(size)
-                menu_show()
-            except:
-                pass
+            size = int(input('Enter the size you want to resize: '))
+            recipt.resize(size)
+            menu_show()
+            
         elif number == 9:
             sys.exit()
+            
     def menu_show():
         print('\nTo navigate the menu, you must select one of the options and write the corresponding number\n')
         print('-'*width)
@@ -173,11 +181,11 @@ def main():
         print('-'*width+'\n')
         try:
             answer = int(input('Give the number corresponding to the desired option: '))
-            assert 0 <answer < 10
-            menu(answer)
-        except:
+            assert 0 < answer < 10
+            menu_action(answer)
+        except Exception as exception:
             menu_show()
+            print(exception)
     menu_show()
 
 main()
-

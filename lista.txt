@@ -6,7 +6,5 @@ Avocado 1 BUC 2.5
 Lapte 1 L 5
 Miere 1 BUC 15
 Cana 1 BUC 20
-Canare 1 BUC 20
 Tastatura 1 BUC 800
-Tastatura 1 2 3
 Pix 1 BUC 1
