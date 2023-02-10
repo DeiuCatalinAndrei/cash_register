@@ -1,4 +1,4 @@
-# Cash Register
+# Cash Register with a DataBase stored in a File
 
 ## Description
 This is a cash register with a database stored in a file. We have the possibility to:
